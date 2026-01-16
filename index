@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Koran na dziś</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 50px auto;
+    line-height: 1.6;
+    padding: 0 20px;
+    background: #f9f9f9;
+    color: #333;
+    text-align: center;
+}
+#verse {
+    font-size: 1.4em;
+    font-style: italic;
+    margin-bottom: 20px;
+}
+#reference {
+    font-weight: bold;
+    color: #555;
+}
+</style>
+</head>
+<body>
+
+<h1>Koran na dziś</h1>
+<div id="verse">Ładowanie wersetu...</div>
+<div id="reference"></div>
+
+<!-- PapaParse do CSV -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+const csvUrl = "https://raw.githubusercontent.com/KolektywPolskichMuzulmanow/koran-na-dzien/main/Koran%20%20-%20Arkusz1.csv";
+
+Papa.parse(csvUrl, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: function(results) {
+        console.log("CSV data:", results.data);
+
+        // filtrujemy wiersze, które mają werset i referencję
+        let versesData = results.data.filter(row =>
+            row.verse && row.verse.trim() !== "" &&
+            row.reference && row.reference.trim() !== ""
+        );
+
+        console.log("Filtered verses:", versesData);
+
+        if (versesData.length === 0) {
+            document.getElementById("verse").textContent = "Brak danych w CSV.";
+            document.getElementById("reference").textContent = "";
+            return;
+        }
+
+        // wiersz na dzisiejszy dzień (powtarzamy od początku jeśli lista się skończy)
+        const today = new Date().getDate() % versesData.length;
+        const row = versesData[today];
+
+        document.getElementById("verse").textContent = '"' + row.verse.trim() + '"';
+        document.getElementById("reference").textContent = "— " + row.reference.trim();
+    },
+    error: function(err) {
+        console.error("Błąd wczytywania CSV:", err);
+        document.getElementById("verse").textContent = "Błąd wczytywania wersetu.";
+        document.getElementById("reference").textContent = "";
+    }
+});
+</script>
+
+</body>
+</html>
